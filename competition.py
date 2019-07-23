@@ -14,7 +14,7 @@ For running a TCP competition, consider the runcompetition.sh script
 
 QUEUE=10
 DELAY='110ms'		# r--h3 link
-BottleneckBW=8
+BottleneckBW=4
 BBR=False
 
 # reno-bbr parameters:
@@ -85,15 +85,15 @@ def main():
                   link=TCLink,
                   #switch = OVSKernelSwitch, 
                   #controller = RemoteController,
-		  autoSetMacs = True   # --mac
-                )
+                  autoSetMacs = True   # --mac
+                  )
     net.start()
     r = net['r']
     r.cmd('ip route list')
-    #r.cmd('ifconfig r-eth0 10.0.1.1/24')
-    #r.cmd('ifconfig r-eth1 10.0.2.1/24')
-    #r.cmd('ifconfig r-eth2 10.0.3.1/24')
-    #r.cmd('sysctl net.ipv4.ip_forward=1')
+    r.cmd('ifconfig r-eth1 10.0.1.1/24')
+    r.cmd('ifconfig r-eth2 10.0.2.1/24')
+    r.cmd('ifconfig r-eth3 10.0.3.1/24')
+    r.cmd('sysctl net.ipv4.ip_forward=1')
     r.cmd('tc qdisc change dev r-eth3 handle 10: netem limit {}'.format(QUEUE))
 
     h1 = net['h1']
