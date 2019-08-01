@@ -86,7 +86,7 @@ def main():
     net = Mininet(topo = rtopo,
                   link=TCLink,
                   #switch = OVSKernelSwitch, 
-                  #controller = RemoteController,
+                  controller = RemoteController,
                   autoSetMacs = True   # --mac
                   )
     net.start()
