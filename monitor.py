@@ -21,7 +21,3 @@ def monitor_qlen(interface, interval_sec=0.01, file_name='%s/qlen.txt' % default
             open(file_name, 'a').write(t + ',' + matches[1] + '\n')
         sleep(interval_sec)
     return
-
-pattern = re.compile(
-    r'tv_sec:\s([\d]+),\stv_nsec:\s(\d*)\s}\slink_utilization:\s(\d.\d+)\squeue:\s(\d+)\scwnd:\s(\d+)'
-)
