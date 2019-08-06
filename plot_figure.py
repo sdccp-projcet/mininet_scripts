@@ -7,12 +7,15 @@ pattern = re.compile(
     r'tv_sec:\s([\d]+),\stv_nsec:\s(\d*)\s}\slink_utilization:\s(\d.\d+)\squeue:\s(\d+)\scwnd:\s(\d+)'
 )
 
+build_dir = "build/"
 log_file = "/home/lam/Projects/sdccp/remote-generic/log_output"
-output_file = "formatted_log"
+output_file = build_dir + "formatted_log"
 
 
 def format_file(file_in, file_out):
     f_in = open(file_in, "r")
+    if not os.path.exists(build_dir):
+        os.mkdir(build_dir)
     if os.path.exists(file_out):
         os.remove(file_out)
     for x in f_in:
