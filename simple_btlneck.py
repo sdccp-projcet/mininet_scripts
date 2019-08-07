@@ -12,6 +12,15 @@ router between two subnets:
 For running a TCP competition, consider the runcompetition.sh script
 """
 
+from mininet.net import Mininet
+from mininet.node import Node, OVSKernelSwitch, Controller, RemoteController
+from mininet.cli import CLI
+from mininet.link import TCLink
+from mininet.topo import Topo
+from mininet.log import setLogLevel, info
+import argparse
+import time
+
 QUEUE=1000
 DELAY='110ms'		# r--h3 link
 BottleneckBW=4
@@ -25,17 +34,22 @@ if BBR:
     QUEUE=10
     BottleneckBW=10
 
-from mininet.net import Mininet
-from mininet.node import Node, OVSKernelSwitch, Controller, RemoteController
-from mininet.cli import CLI
-from mininet.link import TCLink
-from mininet.topo import Topo
-from mininet.log import setLogLevel, info
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--autotest', '-a',
+                    help="The cc algorithm to run in auto test",
+                    action="store",
+                    dest="autotest")
+parser.add_argument('--duration', '-d',
+                    help="Duration of test",
+                    action="store",
+                    dest="duration")
 
 # h1addr = '10.0.1.2/24'
 # h2addr = '10.0.2.2/24'
 # r1addr1= '10.0.1.1/24'
 # r1addr2= '10.0.2.1/24'
+
 
 class LinuxRouter( Node ):
     "A Node with IP forwarding enabled."
@@ -81,7 +95,8 @@ class RTopo(Topo):
 # BBW=10: 1.25 KB/ms, or 50 KB in transit if the delay is 40 ms.
 # queue = 267: extra 400 KB in transit, or 8x bandwidthxdelay
 
-def main():
+
+def main(is_auto_test=None, duration=10):
     rtopo = RTopo()
     net = Mininet(topo = rtopo,
                   link=TCLink,
@@ -106,13 +121,39 @@ def main():
     h1.cmd('tc qdisc add dev h1-eth root fq')
     h2.cmd('tc qdisc del dev h2-eth root')
     h2.cmd('tc qdisc add dev h2-eth root fq')
-    for h in [r1, r2, h1, h2]: h.cmd('/usr/sbin/sshd')
+
+    if is_auto_test:
+        if duration <= 0:
+            print("Error! Invalid duration: %s. Please input a valid duration for test." % duration)
+        print("Enable auto test. h1 connect to h2 using %s ..." % is_auto_test)
+        time.sleep(1)
+        h1 = net['h1']
+        h2 = net['h2']
+        h2.cmd('iperf -s -p 12345 -i 1 &')
+        h1.cmd('iperf -c 10.0.1.11 -p 12345 -i 1 -Z %s -t %d &' % (is_auto_test, duration))
+        time.sleep(duration * 1.5)
+        net.stop()
+        return
+
+    for h in [r1, r2, h1, h2]:
+        h.cmd('/usr/sbin/sshd')
 
     CLI( net)
     net.stop()
 
-setLogLevel('info')
-main()
+
+if __name__ == '__main__':
+    setLogLevel('info')
+    args = parser.parse_args()
+    if args.autotest:
+        if args.duration:
+            main(is_auto_test=args.autotest, duration=args.duration)
+        else:
+            main(is_auto_test=args.autotest)
+    else:
+        main()
+
+
 
 """
 This leads to a queuing hierarchy on r with an htb node, 5:0, as the root qdisc. 

@@ -74,8 +74,8 @@ parser.add_argument('--expr', '-e',
 if __name__ == '__main__':
     args = parser.parse_args()
     if args.expr:
-        log_file += args.expr
-        output_file += args.expr
+        log_file += "_" + args.expr
+        output_file += "_" + args.expr
     log_file += ".txt"
     output_img = output_file
     output_file += ".txt"
