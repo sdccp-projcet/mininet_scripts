@@ -114,7 +114,7 @@ def main(is_auto_test=None, duration=10):
     # r2.cmd('ifconfig r2-eth1 10.0.1.2/24')
     # r1.cmd('sysctl net.ipv4.ip_forward=1')
     # r2.cmd('sysctl net.ipv4.ip_forward=1')
-    r2.cmd('tc qdisc change dev r2-eth2 handle 10: netem limit {}'.format(QUEUE))
+    r1.cmd('tc qdisc change dev r1-eth2 handle 10: netem limit {}'.format(QUEUE))
 
     h1 = net['h1']
     h2 = net['h2']
