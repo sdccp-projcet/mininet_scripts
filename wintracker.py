@@ -8,7 +8,6 @@
 import pcapy
 import time
 import threading
-import sys
 
 # TCP HEADER FIELDS
 TCP_DATAOFFSET = 12
@@ -34,6 +33,7 @@ interval = 0.1
 dev1 = 'r-eth1'
 dev2 = 'r-eth2'
 
+
 def setup():
     global dev
     #if len(sys.argv) > 1:         dev = sys.argv[1]
@@ -44,6 +44,7 @@ def setup():
     cap1.setfilter(filter)
     cap2.setfilter(filter)
     return (cap1,cap2)
+
 
 def process_packets1():
     global cap1, seq1, ack1, starttime, pktcount
@@ -67,6 +68,7 @@ def process_packets1():
         elif sport == port1:
             ack1 = int4(tcphdr, TCP_ACK_OFFSET)
 
+
 def process_packets2():
     global cap2, seq2, ack2, starttime, pktcount
     while True:
@@ -88,6 +90,7 @@ def process_packets2():
         elif sport == port2:
             ack2 = int4(tcphdr, TCP_ACK_OFFSET)
 
+
 def parsepacket(p):
     ethhdr = p[0:14]
     p = p[14:]
@@ -102,6 +105,7 @@ def parsepacket(p):
     #dstport= int2(tcphdr, TCP_DSTPORT_OFFSET)
     p = p[tcphdrlen:]
     return (ethhdr, iphdr, tcphdr, p)
+
 
 # started by whichever thread sees first packet
 def printstats():
@@ -130,6 +134,7 @@ def printstats():
 def tcpheaderlen(p):
     return (ord(p[TCP_DATAOFFSET]) >> 4)
 
+
 # returns 4-byte integer from a python2 string p, from the designated location
 def int4(p, offset):
     return  (((ord(p[offset])   & 0xff) << 24) |
@@ -137,10 +142,12 @@ def int4(p, offset):
              ((ord(p[offset+2]) & 0xff) <<  8) |
              ((ord(p[offset+3]) & 0xff)      ) )
 
+
 # ditto but for 2-byte integer
 def int2(p, offset):
     return  (((ord(p[offset])   & 0xff) << 8) |
              ((ord(p[offset+1]) & 0xff)     ) )
+
 
 # takes 32-bit int and returns dotted-decimal string
 def dd(ipv4num):
@@ -154,6 +161,7 @@ def dd(ipv4num):
     ipv4num >>= 8
     return '{}.{}.{}.{}'.format(b1,b2,b3,b4)
 
+
 # converts dotted-decimal ipv4 address to 32-bit integer
 def dd_to_int(dd):
     ints = map(int, dd.split('.'))
@@ -163,7 +171,8 @@ def dd_to_int(dd):
         if i < 3: addr <<= 8
     return addr
 
-(cap1,cap2) = setup()
+
+(cap1, cap2) = setup()
 th1 = threading.Thread(target=process_packets1, name="interface1")
 th2 = threading.Thread(target=process_packets2, name="interface2")
 th1.start()
