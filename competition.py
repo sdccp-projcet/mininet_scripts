@@ -20,7 +20,7 @@ from mininet.log import setLogLevel, info
 import argparse
 import time
 
-QUEUE=1000
+QUEUE=100
 DELAY='110ms'		# r--h3 link
 BottleneckBW=4
 BBR=False
