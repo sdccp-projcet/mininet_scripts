@@ -1,3 +1,4 @@
+#!/usr/bin/python
 """router topology example for TCP competions.
    This remains the default version
 
