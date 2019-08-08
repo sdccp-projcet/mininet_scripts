@@ -1,10 +1,12 @@
+#!/usr/bin/python
 import argparse
 import re
 import os
 import matplotlib.pyplot as plt
 
 pattern = re.compile(
-    r'tv_sec:\s([\d]+),\stv_nsec:\s(\d*)\s}\slink_utilization:\s(\d.\d+)\squeue:\s(\d+)\scwnd:\s(\d+)'
+    r'tv_sec:\s([\d]+),\stv_nsec:\s(\d*)\s}\slink_utilization:\s(\d.\d+)\s'
+    r'queue:\s(-?\d+)\scwnd:\s(\d+)\srtt:\s(\d+.\d+)'
 )
 
 build_dir = "build/"
@@ -42,23 +44,29 @@ def plot_figure(f, out):
     times = [t - start_time for t in times]
     plt.figure()
 
-    plt.subplot(311)
+    plt.subplot(411)
     link_utilizations = map(lambda d: float(d[1]), data)
     plt.plot(times, link_utilizations)
     plt.xlabel('time')
     plt.ylabel('link_utilization')
 
-    plt.subplot(312)
+    plt.subplot(412)
     queues = map(lambda d: float(d[2]), data)
     plt.plot(times, queues)
     plt.xlabel('time')
     plt.ylabel('queues')
 
-    plt.subplot(313)
+    plt.subplot(413)
     cwnds = map(lambda d: float(d[3]), data)
     plt.plot(times, cwnds)
     plt.xlabel('time')
     plt.ylabel('cwnd')
+
+    plt.subplot(414)
+    rtt = map(lambda d: float(d[4]), data)
+    plt.plot(times, rtt)
+    plt.xlabel('time')
+    plt.ylabel('rtt')
 
     plt.savefig(out)
     plt.show()
