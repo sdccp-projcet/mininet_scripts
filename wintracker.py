@@ -43,24 +43,25 @@ def setup():
     bpf = pcapy.compile(pcapy.DLT_EN10MB, 1500, filter, 0, 0xffffff00)  # (type, max, filter, optimize?, netmask)
     cap1.setfilter(filter)
     cap2.setfilter(filter)
-    return (cap1,cap2)
+    return (cap1, cap2)
 
 
 def process_packets1():
     global cap1, seq1, ack1, starttime, pktcount
     while True:
-        _,p = cap1.next()	# exception?
-        if halting: exit(0)
+        _, p = cap1.next()	# exception?
+        if halting:
+            exit(0)
         if p == None or len(p) == 0:
-             #print '.',
-             continue;
+            # print '.',
+            continue
         pktcount += 1
         if starttime == -1: 
-             starttime = time.time()
-             print 
-             printstats()
-        #print '.',
-        (_,iphdr,tcphdr,data) = parsepacket(p)
+            starttime = time.time()
+            print
+            printstats()
+        # print '.',
+        (_, iphdr, tcphdr, data) = parsepacket(p)
         sport = int2(tcphdr, TCP_SRCPORT_OFFSET)
         dport = int2(tcphdr, TCP_DSTPORT_OFFSET)
         if dport == port1:             # get seq if dport in [port1,port2]
@@ -114,17 +115,17 @@ def printstats():
     if starttime != -1:
         print ('{}\t{}\t{}'.format(elapsed, seq1-ack1, seq2-ack2))
         print ('{}\t{}\t{}'.format(elapsed, seq1-ack1, seq2-ack2))
-    if pktcount > 0 and pktcount == pktprev:	# quit when there's no new packets
+    if pktcount > 0 and pktcount == pktprev:        # quit when there's no new packets
         if repeats >= 10:
-             halting=True
-             exit(0)
-        repeats+=1
+            halting=True
+            exit(0)
+        repeats += 1
     elif pktcount > 0:
-       pktprev = pktcount
-       repeats=0
-       statcount +=1
-    #nexttime = starttime + statcount * interval
-    #inter = nexttime - time.time()
+        pktprev = pktcount
+        repeats = 0
+        statcount += 1
+    # nexttime = starttime + statcount * interval
+    # inter = nexttime - time.time()
     inter = statcount * interval - elapsed
     if starttime > -1: assert inter > 0, "printstats: bad time!"
     t = threading.Timer(inter,printstats)
@@ -145,8 +146,8 @@ def int4(p, offset):
 
 # ditto but for 2-byte integer
 def int2(p, offset):
-    return  (((ord(p[offset])   & 0xff) << 8) |
-             ((ord(p[offset+1]) & 0xff)     ) )
+    return (((ord(p[offset]) & 0xff) << 8) |
+            (ord(p[offset+1]) & 0xff))
 
 
 # takes 32-bit int and returns dotted-decimal string
@@ -159,7 +160,7 @@ def dd(ipv4num):
     ipv4num >>= 8
     b1 = (ipv4num & 0xff)
     ipv4num >>= 8
-    return '{}.{}.{}.{}'.format(b1,b2,b3,b4)
+    return '{}.{}.{}.{}'.format(b1, b2, b3, b4)
 
 
 # converts dotted-decimal ipv4 address to 32-bit integer
