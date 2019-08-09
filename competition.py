@@ -44,6 +44,10 @@ parser.add_argument('--duration', '-d',
                     help="Duration of test",
                     action="store",
                     dest="duration")
+parser.add_argument('--simpletest', '-s',
+                    help="The cc algorithm to run in auto test",
+                    action="store",
+                    dest="simpletest")
 
 # h1addr = '10.0.1.2/24'
 # h2addr = '10.0.2.2/24'
@@ -99,7 +103,7 @@ class RTopo(Topo):
 # queue = 267: extra 400 KB in transit, or 8x bandwidthxdelay
 
 
-def main(is_auto_test=None, duration=10):
+def main(is_auto_test=None, duration=10, simple_test=None):
     rtopo = RTopo()
     net = Mininet(topo = rtopo,
                   link=TCLink,
@@ -128,15 +132,17 @@ def main(is_auto_test=None, duration=10):
     h3.cmd('tc qdisc del dev h3-eth root')
     h3.cmd('tc qdisc add dev h3-eth root fq')
 
-    if is_auto_test:
+    if is_auto_test or simple_test:
+        test_type = is_auto_test if is_auto_test else simple_test
         if duration <= 0:
             print("Error! Invalid duration: %s. Please input a valid duration for test." % duration)
-        print("Enable auto test. h1 connect to h2 using %s ..." % is_auto_test)
+        print("Enable auto test. h1 connect to h2 using %s ..." % test_type)
         time.sleep(1)
-        h1 = net['h1']
-        h2 = net['h2']
         h2.cmd('iperf -s -p 12345 -i 1 &')
-        h1.cmd('iperf -c 10.0.1.11 -p 12345 -i 1 -Z %s -t %d &' % (is_auto_test, duration))
+        h1.cmd('iperf -c 10.0.1.11 -p 12345 -i 1 -Z %s -t %d &' % (test_type, duration))
+        if is_auto_test:
+            time.sleep(0.2)
+            h3.cmd('iperf -c 10.0.1.11 -p 12345 -i 1 -Z %s -t %d &' % (test_type, duration))
         time.sleep(duration * 1.5)
         net.stop()
         return
@@ -153,6 +159,11 @@ if __name__ == '__main__':
             main(is_auto_test=args.autotest, duration=args.duration)
         else:
             main(is_auto_test=args.autotest)
+    elif args.simpletest:
+        if args.duration:
+            main(simple_test=args.simpletest, duration=args.duration)
+        else:
+            main(simple_test=args.simpletest)
     else:
         main()
 
