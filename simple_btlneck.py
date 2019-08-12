@@ -148,7 +148,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.autotest:
         if args.duration:
-            main(is_auto_test=args.autotest, duration=args.duration)
+            main(is_auto_test=args.autotest, duration=int(args.duration))
         else:
             main(is_auto_test=args.autotest)
     else:
