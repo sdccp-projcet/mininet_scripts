@@ -36,7 +36,7 @@ def format_file(file_in, file_out):
             open(file_out, 'a').write('\n')
 
 
-def plot_figure(f, out):
+def plot_figure(f, out, xlim=None):
     data = open(f).readlines()
     data = [x.split() for x in data]
     times = map(lambda d: float(d[0]), data)
@@ -46,6 +46,8 @@ def plot_figure(f, out):
 
     plt.subplot(411)
     link_utilizations = map(lambda d: float(d[1]), data)
+    if xlim:
+        plt.xlim(0, xlim)
     plt.ylim(0, 1.2)
     plt.plot(times, link_utilizations)
     plt.xlabel('time')
@@ -53,25 +55,31 @@ def plot_figure(f, out):
 
     plt.subplot(412)
     queues = map(lambda d: float(d[2]), data)
+    if xlim:
+        plt.xlim(0, xlim)
     plt.ylim(0, 100)
     plt.plot(times, queues)
     plt.xlabel('time')
-    plt.ylabel('queues')
+    plt.ylabel('queues (packets)')
 
     plt.subplot(413)
     cwnds = map(lambda d: float(d[3]), data)
+    if xlim:
+        plt.xlim(0, xlim)
     plt.ylim(0, 100)
     plt.plot(times, cwnds)
     plt.xlabel('time')
-    plt.ylabel('cwnd')
+    plt.ylabel('cwnd (packets)')
 
     plt.subplot(414)
     rtt = map(lambda d: float(d[4]), data)
+    if xlim:
+        plt.xlim(0, xlim)
     plt.yscale("log")
     plt.ylim(100, 1000)
     plt.plot(times, rtt)
-    plt.xlabel('time')
-    plt.ylabel('rtt')
+    plt.xlabel('time (s)')
+    plt.ylabel('rtt (ms)')
 
     plt.savefig(out)
     plt.show()
@@ -82,6 +90,10 @@ parser.add_argument('--expr', '-e',
                     help="Experiment's name",
                     action="store",
                     dest="expr")
+parser.add_argument('--xlim', '-x',
+                    help="xaxis range limit",
+                    action="store",
+                    dest="xlim")
 
 
 if __name__ == '__main__':
@@ -93,4 +105,7 @@ if __name__ == '__main__':
     output_img = output_file
     output_file += ".txt"
     format_file(log_file, output_file)
-    plot_figure(output_file, output_img)
+    if args.xlim:
+        plot_figure(output_file, output_img, xlim=int(args.xlim))
+    else:
+        plot_figure(output_file, output_img)
