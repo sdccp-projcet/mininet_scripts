@@ -87,11 +87,11 @@ class RTopo(Topo):
         self.addLink( h1, r1, intfName1 = 'h1-eth', intfName2 = 'r1-eth1', bw=80,
                  params2 = {'ip' : '10.0.1.1/24'})
 
-        self.addLink( h3, r1, intfName1 = 'h3-eth', intfName2 = 'r1-eth3', bw=80,
-                 params2 = {'ip' : '10.0.1.3/24'})
-
-        self.addLink( h2, r2, intfName1 = 'h2-eth', intfName2 = 'r2-eth1',
+        self.addLink( h2, r1, intfName1 = 'h2-eth', intfName2 = 'r1-eth3', bw=80,
                  params2 = {'ip' : '10.0.1.2/24'})
+
+        self.addLink( h3, r2, intfName1 = 'h3-eth', intfName2 = 'r2-eth1',
+                 params2 = {'ip' : '10.0.1.3/24'})
 
         self.addLink(r1, r2, intfName1='r1-eth2', intfName2='r2-eth2',
                      bw=BottleneckBW, delay=DELAY, queue=QUEUE)
@@ -138,11 +138,11 @@ def main(is_auto_test=None, duration=10, simple_test=None):
             print("Error! Invalid duration: %s. Please input a valid duration for test." % duration)
         print("Enable auto test. h1 connect to h2 using %s ..." % test_type)
         time.sleep(1)
-        h2.cmd('iperf -s -p 12345 -i 1 &')
-        h1.cmd('iperf -c 10.0.1.11 -p 12345 -i 1 -Z %s -t %d &' % (test_type, duration))
+        h3.cmd('iperf -s -p 12345 -i 1 &')
+        h1.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (test_type, duration))
         if is_auto_test:
-            time.sleep(0.2)
-            h3.cmd('iperf -c 10.0.1.11 -p 12345 -i 1 -Z %s -t %d &' % (test_type, duration))
+            time.sleep(duration/2)
+            h2.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (test_type, duration/2))
         time.sleep(duration * 1.5)
         net.stop()
         return
