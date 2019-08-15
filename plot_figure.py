@@ -75,8 +75,8 @@ def plot_figure(f, out, xlim=None):
     rtt = map(lambda d: float(d[4]), data)
     if xlim:
         plt.xlim(0, xlim)
-    plt.yscale("log")
-    plt.ylim(100, 1000)
+    # plt.yscale("log")
+    plt.ylim(100, 400)
     plt.plot(times, rtt)
     plt.xlabel('time (s)')
     plt.ylabel('rtt (ms)')
