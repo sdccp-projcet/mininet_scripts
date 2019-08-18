@@ -5,7 +5,7 @@ import os
 import matplotlib.pyplot as plt
 from file_process import *
 
-log_file = "/home/lam/Projects/sdccp/remote-generic/log_output"
+log_file = "/home/lam/Projects/sdccp/FCA/log_output"
 output_file = build_dir + "formatted_log"
 output_img = build_dir + "compare"
 
