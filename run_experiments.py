@@ -40,10 +40,11 @@ def mv_file(i):
     os.chdir(FCA_PATH)
     # subprocess.call("mv {} {}".format(LOG_FILE, OUTPUT_PATH + str(i)))
     subprocess.call("ls")
-    subprocess.call("sudo cp log_output1.txt build/1/1", shell=True)
+    subprocess.call("sudo cp log_output1.txt build/1/{}".format(i), shell=True)
 
 
 def main():
+    """Deprecated due to some bugs."""
     print("The number of CPU is:" + str(cpu_count()))
     args = parser.parse_args()
     for i in range(int(args.number)):
