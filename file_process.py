@@ -9,6 +9,12 @@ build_dir = "build/"
 
 
 def format_file(file_in, file_out):
+    """
+
+    :param file_in: log file of FCA
+    :param file_out: formatted log file
+    :return: None
+    """
     f_in = open(file_in, "r")
     if not os.path.exists(build_dir):
         os.mkdir(build_dir)
