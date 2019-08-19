@@ -143,11 +143,11 @@ def main(is_auto_test=None, duration=10, simple_test=None):
         if is_auto_test:
             time.sleep(duration/2)
             h2.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (test_type, duration/2))
-        time.sleep(duration * 1.5)
+        time.sleep(duration + 10)
         net.stop()
         return
 
-    CLI( net)
+    CLI(net)
     net.stop()
 
 
