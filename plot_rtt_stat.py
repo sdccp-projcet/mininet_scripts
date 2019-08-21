@@ -5,13 +5,18 @@ from os import listdir
 from os.path import isfile, join
 from file_process import *
 import numpy
-import re
+import matplotlib.pyplot as plt
 
 log_file_dir = "/home/lam/Projects/sdccp/FCA/build/"
-pattern = r'interval:'
 
 
 def calculate_rtts(f):
+    """
+
+    :param f: the formatted log file (which is the output of format_file()
+    :return: rtt_avg: the average of rtts in f.
+             rtt_std: the standard variance of rtts in f.
+    """
     data = open(f).readlines()
     data = [x.split() for x in data]
 
@@ -22,7 +27,31 @@ def calculate_rtts(f):
 
 
 def plot_figure(f, out):
-    pass
+    data = open(f).readlines()
+    data = [x.split() for x in data]
+    intervals = map(lambda d: str(d[0]), data)
+    rtt_avgs = map(lambda d: float(d[1]) - 110, data)
+    rtt_stds = map(lambda d: float(d[2]), data)
+
+    fig, ax1 = plt.subplots()
+
+    color = 'tab:red'
+    ax1.set_xlabel('interval (s)')
+    ax1.set_ylabel('average rtt (ms)', color=color)
+    ax1.bar(intervals, rtt_avgs, color=color)
+    ax1.tick_params(axis='y', labelcolor=color)
+
+    ax2 = ax1.twinx()
+
+    color = 'tab:blue'
+    ax2.set_ylabel('rtt std. (ms)', color=color)
+    ax2.plot(intervals, rtt_stds, color=color)
+    ax2.tick_params(axis='y', labelcolor=color)
+
+    fig.tight_layout()
+
+    plt.savefig(out)
+    plt.show()
 
 
 parser = argparse.ArgumentParser()
@@ -36,6 +65,7 @@ parser.add_argument('--expr', '-e',
 if __name__ == '__main__':
     args = parser.parse_args()
     out = build_dir+'rtt_stats'
+    figure_file = build_dir + 'rtt.png'
     if os.path.exists(out):
         os.remove(out)
     intervals = args.expr.split(',')
@@ -62,11 +92,13 @@ if __name__ == '__main__':
         if os.path.exists(log_file_per_interval):
             os.remove(log_file_per_interval)
         open(log_file_per_interval, 'a+')\
-            .write("index\trtt_avg\t\trtt_std\n")
+            .write("file_index\trtt_avg\t\trtt_std\n")
         for k in sorted(rtt_stds.keys(), key=lambda x: int(x)):
             open(log_file_per_interval, 'a+')\
-                .write("{0}\t\t{1:.3f}\t\t{2:.3f}\n"
+                .write("{0}\t\t\t{1:.3f}\t\t{2:.3f}\n"
                        .format(k, rtt_avgs[k], rtt_stds[k]))
-        open(out, 'a+').write('interval: {}, RTT avg.:{}, RTT std.:{}\n'
+        open(out, 'a+').write('{}\t{}\t{}\n'
                               .format(interval, numpy.average(rtt_avgs.values()),
                                       numpy.average(rtt_stds.values())))
+
+    plot_figure(out, figure_file)
