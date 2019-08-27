@@ -36,18 +36,18 @@ if BBR:
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--autotest', '-a',
-                    help="The cc algorithm to run in auto test",
-                    action="store",
-                    dest="autotest")
 parser.add_argument('--duration', '-d',
                     help="Duration of test",
                     action="store",
                     dest="duration")
-parser.add_argument('--simpletest', '-s',
-                    help="The cc algorithm to run in auto test",
+parser.add_argument('--test_option', '-t',
+                    help="test type",
                     action="store",
-                    dest="simpletest")
+                    dest="test_option")
+parser.add_argument('--cc', '-c',
+                    help="congestion control algorithm to be run",
+                    action="store",
+                    dest="cc")
 
 # h1addr = '10.0.1.2/24'
 # h2addr = '10.0.2.2/24'
@@ -103,7 +103,20 @@ class RTopo(Topo):
 # queue = 267: extra 400 KB in transit, or 8x bandwidthxdelay
 
 
-def main(is_auto_test=None, duration=10, simple_test=None):
+TEST_OPTIONS = ['single', 'compete', 'heterogeneous']
+AVAILABLE_CC = ['ccp', 'bbr', 'cubic', 'reno']
+
+
+def main(test_option=None, duration=10, cc='ccp'):
+    if test_option:
+        if test_option not in TEST_OPTIONS:
+            print("We only support following test_options: " + str(TEST_OPTIONS))
+            return
+
+    if cc not in AVAILABLE_CC:
+        print("We only support following cc: " + str(AVAILABLE_CC))
+        return
+
     rtopo = RTopo()
     net = Mininet(topo = rtopo,
                   link=TCLink,
@@ -132,17 +145,24 @@ def main(is_auto_test=None, duration=10, simple_test=None):
     h3.cmd('tc qdisc del dev h3-eth root')
     h3.cmd('tc qdisc add dev h3-eth root fq')
 
-    if is_auto_test or simple_test:
-        test_type = is_auto_test if is_auto_test else simple_test
+    if test_option:
         if duration <= 0:
             print("Error! Invalid duration: %s. Please input a valid duration for test." % duration)
-        print("Enable auto test. h1 connect to h2 using %s ..." % test_type)
+        print("Enable auto test. h1 connect to h2 using %s ..." % cc)
         time.sleep(1)
         h3.cmd('iperf -s -p 12345 -i 1 &')
-        h1.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (test_type, duration))
-        if is_auto_test:
+
+        if test_option == 'single':
+            h1.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (cc, duration))
+        elif test_option == 'compete':
+            h1.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (cc, duration))
             time.sleep(duration/2)
-            h2.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (test_type, duration/2))
+            h2.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (cc, duration/2))
+        elif test_option == 'heterogeneous':
+            h1.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z ccp -t %d &' % duration)
+            time.sleep(1)
+            h2.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z cubic -t %d &' % duration)
+
         time.sleep(duration + 10)
         net.stop()
         return
@@ -154,19 +174,10 @@ def main(is_auto_test=None, duration=10, simple_test=None):
 if __name__ == '__main__':
     setLogLevel('info')
     args = parser.parse_args()
-    if args.autotest:
-        if args.duration:
-            main(is_auto_test=args.autotest, duration=int(args.duration))
-        else:
-            main(is_auto_test=args.autotest)
-    elif args.simpletest:
-        if args.duration:
-            main(simple_test=args.simpletest, duration=int(args.duration))
-        else:
-            main(simple_test=args.simpletest)
-    else:
-        main()
-
+    duration = args.duration if args.duration else 10
+    cc = args.cc if args.cc else 'ccp'
+    test_option = args.test_option if args.test_option else None
+    main(test_option=test_option, duration=int(duration), cc=cc)
 
 
 """
@@ -174,6 +185,6 @@ This leads to a queuing hierarchy on r with an htb node, 5:0, as the root qdisc.
 The class below it is 5:1. Below that is a netem qdisc with handle 10:, with delay 110.0ms.
 We can change the limit (maximum queue capacity) with:
 
-	tc qdisc change dev r-eth1 handle 10: netem limit 5 delay 110.0ms
+    tc qdisc change dev r-eth1 handle 10: netem limit 5 delay 110.0ms
 
 """
