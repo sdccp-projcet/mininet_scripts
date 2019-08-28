@@ -21,6 +21,10 @@ from mininet.log import setLogLevel, info
 import argparse
 import time
 
+
+TEST_OPTIONS = ['single', 'compete', 'heterogeneous', 'dynamic']
+AVAILABLE_CC = ['ccp', 'bbr', 'cubic', 'reno']
+
 QUEUE=100
 DELAY='110ms'		# r--h3 link
 BottleneckBW=4
@@ -37,11 +41,11 @@ if BBR:
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--duration', '-d',
-                    help="Duration of test",
+                    help="Duration of test in seconds",
                     action="store",
                     dest="duration")
 parser.add_argument('--test_option', '-t',
-                    help="test type",
+                    help="test type. Current support: %s" % str(TEST_OPTIONS),
                     action="store",
                     dest="test_option")
 parser.add_argument('--cc', '-c',
@@ -103,11 +107,7 @@ class RTopo(Topo):
 # queue = 267: extra 400 KB in transit, or 8x bandwidthxdelay
 
 
-TEST_OPTIONS = ['single', 'compete', 'heterogeneous']
-AVAILABLE_CC = ['ccp', 'bbr', 'cubic', 'reno']
-
-
-def main(test_option=None, duration=10, cc='ccp'):
+def main(test_option=None, duration=10, cc='bbr'):
     if test_option:
         if test_option not in TEST_OPTIONS:
             print("We only support following test_options: " + str(TEST_OPTIONS))
@@ -154,16 +154,24 @@ def main(test_option=None, duration=10, cc='ccp'):
 
         if test_option == 'single':
             h1.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (cc, duration))
+            time.sleep(duration + 10)
         elif test_option == 'compete':
             h1.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (cc, duration))
             time.sleep(duration/2)
             h2.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (cc, duration/2))
+            time.sleep(duration/2 + 10)
         elif test_option == 'heterogeneous':
             h1.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z ccp -t %d &' % duration)
             time.sleep(1)
             h2.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z cubic -t %d &' % duration)
-
-        time.sleep(duration + 10)
+            time.sleep(duration + 10)
+        elif test_option == 'dynamic':
+            h1.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (cc, duration))
+            time.sleep(duration / 3)
+            r1.cmd('tc class change dev r1-eth2 parent 5:0 classid 5:1 htb rate 2Mbit')
+            time.sleep(duration / 3)
+            r1.cmd('tc class change dev r1-eth2 parent 5:0 classid 5:1 htb rate 4Mbit')
+            time.sleep(duration / 3 + 10)
         net.stop()
         return
 
@@ -175,7 +183,7 @@ if __name__ == '__main__':
     setLogLevel('info')
     args = parser.parse_args()
     duration = args.duration if args.duration else 10
-    cc = args.cc if args.cc else 'ccp'
+    cc = args.cc if args.cc else 'bbr'
     test_option = args.test_option if args.test_option else None
     main(test_option=test_option, duration=int(duration), cc=cc)
 
