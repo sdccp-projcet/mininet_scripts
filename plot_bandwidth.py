@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 #                     dest="expr")
 
 LOG_FILE = '/home/lam/Projects/sdccp/ryu/build/log.txt'
+OUTPUT_FILE = 'build/bandwidth.png'
 
 
 def main():
@@ -29,6 +30,7 @@ def main():
     plt.xlabel('time(s)')
     plt.ylabel('sending rate (Mbps)')
     plt.show()
+    plt.savefig(OUTPUT_FILE)
 
 
 if __name__ == '__main__':
