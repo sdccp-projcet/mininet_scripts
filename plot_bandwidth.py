@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # import argparse
 import matplotlib.pyplot as plt
+from competition import LOG_FILE as SCRIPT_FILE
 
 # parser = argparse.ArgumentParser()
 # parser.add_argument('--expr', '-e',
@@ -21,16 +22,32 @@ def main():
     start_time = data[0][0]
     x = [d[0] for d in data]
     y = [d[1] for d in data]
+    q = [d[2] for d in data]
     x = map(lambda t: t - start_time, x)
     y = map(lambda s: s / 1000000, y)
+    q = map(lambda q: q / 1000, q)
+
+    data = open(SCRIPT_FILE).readlines()
+    data = [d.split() for d in data]
+    data = map(lambda x: [float(k) for k in x], data)
+    x1 = [d[0] for d in data]
+    y1 = [d[1] for d in data]
+    x1 = map(lambda t: t - start_time, x1)
 
     plt.figure()
+    plt.subplot(211)
 
-    plt.plot(x, y)
+    plt.plot(x, y, 'b', x1, y1, 'r')
     plt.xlabel('time(s)')
     plt.ylabel('sending rate (Mbps)')
-    plt.show()
+
+    plt.subplot(212)
+    plt.plot(x, q, 'b')
+    plt.xlabel('time (s)')
+    plt.ylabel('queue size (kb)')
+
     plt.savefig(OUTPUT_FILE)
+    plt.show()
 
 
 if __name__ == '__main__':

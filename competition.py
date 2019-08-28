@@ -20,6 +20,10 @@ from mininet.topo import Topo
 from mininet.log import setLogLevel, info
 import argparse
 import time
+import os
+
+
+LOG_FILE = '/home/lam/Projects/sdccp/mininet_scripts/build/log.txt'
 
 
 TEST_OPTIONS = ['single', 'compete', 'heterogeneous', 'dynamic']
@@ -108,6 +112,8 @@ class RTopo(Topo):
 
 
 def main(test_option=None, duration=10, cc='bbr'):
+    if os.path.exists(LOG_FILE):
+        os.remove(LOG_FILE)
     if test_option:
         if test_option not in TEST_OPTIONS:
             print("We only support following test_options: " + str(TEST_OPTIONS))
@@ -151,6 +157,7 @@ def main(test_option=None, duration=10, cc='bbr'):
         print("Enable auto test. h1 connect to h2 using %s ..." % cc)
         time.sleep(1)
         h3.cmd('iperf -s -p 12345 -i 1 &')
+        open(LOG_FILE, 'a+').write('%s\t4\n' % (str(time.time())))
 
         if test_option == 'single':
             h1.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (cc, duration))
@@ -167,11 +174,21 @@ def main(test_option=None, duration=10, cc='bbr'):
             time.sleep(duration + 10)
         elif test_option == 'dynamic':
             h1.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (cc, duration))
-            time.sleep(duration / 3)
+            time.sleep(duration / 4)
+            open(LOG_FILE, 'a+').write('%s\t4\n' % (str(time.time())))
             r1.cmd('tc class change dev r1-eth2 parent 5:0 classid 5:1 htb rate 2Mbit')
-            time.sleep(duration / 3)
+            open(LOG_FILE, 'a+').write('%s\t2\n' % (str(time.time())))
+            time.sleep(duration / 4)
+            open(LOG_FILE, 'a+').write('%s\t2\n' % (str(time.time())))
             r1.cmd('tc class change dev r1-eth2 parent 5:0 classid 5:1 htb rate 4Mbit')
-            time.sleep(duration / 3 + 10)
+            open(LOG_FILE, 'a+').write('%s\t4\n' % (str(time.time())))
+            time.sleep(duration / 4)
+            open(LOG_FILE, 'a+').write('%s\t4\n' % (str(time.time())))
+            r1.cmd('tc class change dev r1-eth2 parent 5:0 classid 5:1 htb rate 2Mbit')
+            open(LOG_FILE, 'a+').write('%s\t2\n' % (str(time.time())))
+            time.sleep(duration / 4)
+            open(LOG_FILE, 'a+').write('%s\t2\n' % (str(time.time())))
+            time.sleep(10)
         net.stop()
         return
 
