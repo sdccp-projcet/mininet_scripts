@@ -23,9 +23,10 @@ def main():
     x = [d[0] for d in data]
     y = [d[1] for d in data]
     q = [d[2] for d in data]
+    l = [d[3] for d in data]
     x = map(lambda t: t - start_time, x)
     y = map(lambda s: s / 1000000, y)
-    q = map(lambda q: q / 1000, q)
+    q = map(lambda s: s / 1000, q)
 
     data = open(SCRIPT_FILE).readlines()
     data = [d.split() for d in data]
@@ -35,11 +36,23 @@ def main():
     x1 = map(lambda t: t - start_time, x1)
 
     plt.figure()
-    plt.subplot(211)
+    ax1 = plt.subplot(211)
 
-    plt.plot(x, y, 'b', x1, y1, 'r')
-    plt.xlabel('time(s)')
-    plt.ylabel('sending rate (Mbps)')
+    color = 'tab:red'
+    ax1.set_xlabel('time(s)')
+    ax1.set_ylabel('sending rate (Mbps)')
+    ax1.plot(x, y, 'b', x1, y1, 'r')
+    ax1.tick_params(axis='y', labelcolor=color)
+
+    # plt.plot(x, y, 'b', x1, y1, 'r')
+    # plt.xlabel('time(s)')
+    # plt.ylabel('sending rate (Mbps)')
+    ax2 = ax1.twinx()
+
+    color = 'tab:green'
+    ax2.set_ylabel('link utilization', color=color)
+    ax2.plot(x, l, color=color)
+    ax2.tick_params(axis='y', labelcolor=color)
 
     plt.subplot(212)
     plt.plot(x, q, 'b')
