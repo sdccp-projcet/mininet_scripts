@@ -157,6 +157,14 @@ def main(test_option=None, duration=10, cc='bbr'):
     h3.cmd('tc qdisc del dev h3-eth root')
     h3.cmd('tc qdisc add dev h3-eth root fq')
 
+    def change_bandwidth(bw, pre_bw):
+        open(LOG_FILE, 'a+').write('%s\t%d\n' % (str(time.time()), pre_bw))
+        r1.cmd('tc class change dev r1-eth2 parent 5:0 classid 5:1 htb rate %dMbit' % bw)
+        d = DATA.format(bw * 1000000 / 8)
+        requests.put(URL, data=d)
+        open(LOG_FILE, 'a+').write('%s\t%d\n' % (str(time.time()), bw))
+
+
     if test_option:
         if duration <= 0:
             print("Error! Invalid duration: %s. Please input a valid duration for test." % duration)
@@ -181,17 +189,11 @@ def main(test_option=None, duration=10, cc='bbr'):
         elif test_option == 'dynamic':
             h1.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (cc, duration))
             time.sleep(duration / 4)
-            open(LOG_FILE, 'a+').write('%s\t4\n' % (str(time.time())))
-            r1.cmd('tc class change dev r1-eth2 parent 5:0 classid 5:1 htb rate 2Mbit')
-            open(LOG_FILE, 'a+').write('%s\t2\n' % (str(time.time())))
+            change_bandwidth(2, 4)
             time.sleep(duration / 4)
-            open(LOG_FILE, 'a+').write('%s\t2\n' % (str(time.time())))
-            r1.cmd('tc class change dev r1-eth2 parent 5:0 classid 5:1 htb rate 4Mbit')
-            open(LOG_FILE, 'a+').write('%s\t4\n' % (str(time.time())))
+            change_bandwidth(4, 2)
             time.sleep(duration / 4)
-            open(LOG_FILE, 'a+').write('%s\t4\n' % (str(time.time())))
-            r1.cmd('tc class change dev r1-eth2 parent 5:0 classid 5:1 htb rate 2Mbit')
-            open(LOG_FILE, 'a+').write('%s\t2\n' % (str(time.time())))
+            change_bandwidth(2, 4)
             time.sleep(duration / 4)
             open(LOG_FILE, 'a+').write('%s\t2\n' % (str(time.time())))
             time.sleep(10)
