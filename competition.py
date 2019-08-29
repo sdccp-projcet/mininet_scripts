@@ -21,9 +21,12 @@ from mininet.log import setLogLevel, info
 import argparse
 import time
 import os
+import requests
 
 
 LOG_FILE = '/home/lam/Projects/sdccp/mininet_scripts/build/log.txt'
+URL = 'http://localhost:8080/set_bottleneck_capacity_Bps'
+DATA = '{{"bottleneck_capacity_Bps": "{}"}}'
 
 
 TEST_OPTIONS = ['single', 'compete', 'heterogeneous', 'dynamic']
@@ -131,6 +134,9 @@ def main(test_option=None, duration=10, cc='bbr'):
                   autoSetMacs = True   # --mac
                   )
     net.start()
+    data = DATA.format(4000000 / 8)
+    print(data)
+    requests.put(URL, data=data)
     r1 = net['r1']
     r2 = net['r2']
     # r.cmd('ip route list')
