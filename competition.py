@@ -28,8 +28,11 @@ LOG_FILE = '/home/lam/Projects/sdccp/mininet_scripts/build/log.txt'
 URL = 'http://localhost:8080/set_bottleneck_capacity_Bps'
 DATA = '{{"bottleneck_capacity_Bps": "{}"}}'
 
-
-TEST_OPTIONS = ['single', 'compete', 'heterogeneous', 'dynamic']
+SINGLE = 'single'
+COMPETE = 'compete'
+HETEROGENEOUS = 'heterogeneous'
+DYNAMIC = 'dynamic'
+TEST_OPTIONS = [SINGLE, COMPETE, HETEROGENEOUS, DYNAMIC]
 AVAILABLE_CC = ['ccp', 'bbr', 'cubic', 'reno']
 
 QUEUE=100
@@ -164,7 +167,6 @@ def main(test_option=None, duration=10, cc='bbr'):
         requests.put(URL, data=d)
         open(LOG_FILE, 'a+').write('%s\t%d\n' % (str(time.time()), bw))
 
-
     if test_option:
         if duration <= 0:
             print("Error! Invalid duration: %s. Please input a valid duration for test." % duration)
@@ -173,20 +175,20 @@ def main(test_option=None, duration=10, cc='bbr'):
         h3.cmd('iperf -s -p 12345 -i 1 &')
         open(LOG_FILE, 'a+').write('%s\t4\n' % (str(time.time())))
 
-        if test_option == 'single':
+        if test_option == SINGLE:
             h1.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (cc, duration))
             time.sleep(duration + 10)
-        elif test_option == 'compete':
+        elif test_option == COMPETE:
             h1.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (cc, duration))
             time.sleep(duration/2)
             h2.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (cc, duration/2))
             time.sleep(duration/2 + 10)
-        elif test_option == 'heterogeneous':
+        elif test_option == HETEROGENEOUS:
             h1.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z ccp -t %d &' % duration)
             time.sleep(1)
             h2.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z cubic -t %d &' % duration)
             time.sleep(duration + 10)
-        elif test_option == 'dynamic':
+        elif test_option == DYNAMIC:
             h1.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (cc, duration))
             time.sleep(duration / 4)
             change_bandwidth(2, 4)
