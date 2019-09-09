@@ -62,6 +62,10 @@ parser.add_argument('--cc', '-c',
                     help="congestion control algorithm to be run",
                     action="store",
                     dest="cc")
+parser.add_argument('--loss', '-l',
+                    help="loss rate of bottleneck link",
+                    action="store_true",
+                    dest="loss")
 
 # h1addr = '10.0.1.2/24'
 # h2addr = '10.0.2.2/24'
@@ -97,7 +101,7 @@ class RTopo(Topo):
         h2 = self.addHost( 'h2', ip='10.0.1.11/24', defaultRoute='via 10.0.1.1' )
         h3 = self.addHost( 'h3', ip='10.0.1.12/24', defaultRoute='via 10.0.1.1' )
         #  h1---80Mbit---r1---8Mbit/100ms---r2---80Mbit---h2
- 
+
         self.addLink( h1, r1, intfName1 = 'h1-eth', intfName2 = 'r1-eth1', bw=80,
                  params2 = {'ip' : '10.0.1.1/24'})
 
@@ -110,6 +114,28 @@ class RTopo(Topo):
         self.addLink(r1, r2, intfName1='r1-eth2', intfName2='r2-eth2',
                      bw=BottleneckBW, delay=DELAY, queue=QUEUE)
 
+
+class LossTopo(Topo):
+    def build(self, **_opts):     # special names?
+        r1 = self.addSwitch('r1')
+        r2 = self.addSwitch('r2')
+        h1 = self.addHost( 'h1', ip='10.0.1.10/24', defaultRoute='via 10.0.1.1' )
+        h2 = self.addHost( 'h2', ip='10.0.1.11/24', defaultRoute='via 10.0.1.1' )
+        h3 = self.addHost( 'h3', ip='10.0.1.12/24', defaultRoute='via 10.0.1.1' )
+        #  h1---80Mbit---r1---8Mbit/100ms---r2---80Mbit---h2
+
+        self.addLink( h1, r1, intfName1 = 'h1-eth', intfName2 = 'r1-eth1', bw=80,
+                 params2 = {'ip' : '10.0.1.1/24'})
+
+        self.addLink( h2, r1, intfName1 = 'h2-eth', intfName2 = 'r1-eth3', bw=80,
+                 params2 = {'ip' : '10.0.1.2/24'})
+
+        self.addLink( h3, r2, intfName1 = 'h3-eth', intfName2 = 'r2-eth1',
+                 params2 = {'ip' : '10.0.1.3/24'})
+
+        self.addLink(r1, r2, intfName1='r1-eth2', intfName2='r2-eth2',
+                     bw=BottleneckBW, delay=DELAY, queue=QUEUE, loss=0.001)
+
 # delay is the ONE-WAY delay, and is applied only to traffic departing h3-eth.
 
 # BBW=8: 1 KB/ms, for 1K packets; 110 KB in transit
@@ -117,7 +143,7 @@ class RTopo(Topo):
 # queue = 267: extra 400 KB in transit, or 8x bandwidthxdelay
 
 
-def main(test_option=None, duration=10, cc='bbr'):
+def main(test_option=None, duration=10, cc='bbr', loss=None):
     if os.path.exists(LOG_FILE):
         os.remove(LOG_FILE)
     if test_option:
@@ -129,7 +155,11 @@ def main(test_option=None, duration=10, cc='bbr'):
         print("We only support following cc: " + str(AVAILABLE_CC))
         return
 
-    rtopo = RTopo()
+    if loss:
+        print("enable loss topo.")
+        rtopo = LossTopo()
+    else:
+        rtopo = RTopo()
     net = Mininet(topo = rtopo,
                   link=TCLink,
                   #switch = OVSKernelSwitch, 
@@ -147,7 +177,7 @@ def main(test_option=None, duration=10, cc='bbr'):
     # r2.cmd('ifconfig r2-eth1 10.0.1.2/24')
     # r1.cmd('sysctl net.ipv4.ip_forward=1')
     # r2.cmd('sysctl net.ipv4.ip_forward=1')
-    r1.cmd('tc qdisc change dev r1-eth2 handle 10: netem limit {}'.format(QUEUE))
+    # r1.cmd('tc qdisc change dev r1-eth2 handle 10: netem limit {}'.format(QUEUE))
 
     h1 = net['h1']
     h2 = net['h2']
@@ -212,7 +242,8 @@ if __name__ == '__main__':
     duration = args.duration if args.duration else 10
     cc = args.cc if args.cc else 'bbr'
     test_option = args.test_option if args.test_option else None
-    main(test_option=test_option, duration=int(duration), cc=cc)
+    loss = args.loss if args.loss else None
+    main(test_option=test_option, duration=int(duration), cc=cc, loss=loss)
 
 
 """
