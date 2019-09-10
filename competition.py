@@ -36,13 +36,15 @@ TEST_OPTIONS = [SINGLE, COMPETE, HETEROGENEOUS, DYNAMIC]
 AVAILABLE_CC = ['ccp', 'bbr', 'cubic', 'reno']
 
 QUEUE=100
-DELAY='110ms'		# r--h3 link
-BottleneckBW=4
+DELAY='50ms'		# r--h3 link
+BottleneckBW=100
 BBR=False
+# Loss characteristic is only enabled when specify "--loss" option.
+LOSS = 0.01
 
 # reno-bbr parameters:
 if BBR:
-    DELAY='40ms'	
+    DELAY='40ms'
     QUEUE=267
     # QUEUE=25
     QUEUE=10
@@ -134,7 +136,7 @@ class LossTopo(Topo):
                  params2 = {'ip' : '10.0.1.3/24'})
 
         self.addLink(r1, r2, intfName1='r1-eth2', intfName2='r2-eth2',
-                     bw=BottleneckBW, delay=DELAY, queue=QUEUE, loss=0.001)
+                     bw=BottleneckBW, delay=DELAY, queue=QUEUE, loss=LOSS)
 
 # delay is the ONE-WAY delay, and is applied only to traffic departing h3-eth.
 
@@ -167,7 +169,7 @@ def main(test_option=None, duration=10, cc='bbr', loss=None):
                   autoSetMacs = True   # --mac
                   )
     net.start()
-    data = DATA.format(4000000 / 8)
+    data = DATA.format(BottleneckBW * 1000000 / 8)
     print(data)
     requests.put(URL, data=data)
     r1 = net['r1']
