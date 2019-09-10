@@ -53,11 +53,15 @@ def main():
     losses = [float(f) for f in listdir(CUBIC_DIR) if isfile(join(CUBIC_DIR, f))]
     losses.sort()
     plt.figure()
+    plt.ylim(0, 100)
     plt.xscale('log')
     plt.xlabel('loss rate (log scale)')
     plt.ylabel('throughput (Mbps)')
-    plt.plot(losses, cubic_avg_sending_rates, 'r',
-             losses, fca_avg_sending_rates, 'b')
+    plt.plot(losses, cubic_avg_sending_rates, 'r', label='cubic')
+    plt.plot(losses, fca_avg_sending_rates, 'b', label='FCA')
+    plt.scatter(losses, fca_avg_sending_rates)
+    plt.scatter(losses, cubic_avg_sending_rates)
+    plt.legend()
     plt.savefig(OUTPUT_FILE)
     plt.show()
 
