@@ -48,10 +48,14 @@ def main():
     fca_log_files.sort(key=lambda f: float(f.split('/')[-1]))
     cubic_avg_sending_rates = [calculate_link_utilization(f) for f in cubic_log_files]
     fca_avg_sending_rates = [calculate_link_utilization(f) for f in fca_log_files]
+    cubic_avg_sending_rates = map(lambda s: s / 1000000, cubic_avg_sending_rates)
+    fca_avg_sending_rates = map(lambda s: s / 1000000, fca_avg_sending_rates)
     losses = [float(f) for f in listdir(CUBIC_DIR) if isfile(join(CUBIC_DIR, f))]
     losses.sort()
     plt.figure()
     plt.xscale('log')
+    plt.xlabel('loss rate (log scale)')
+    plt.ylabel('throughput (Mbps)')
     plt.plot(losses, cubic_avg_sending_rates, 'r',
              losses, fca_avg_sending_rates, 'b')
     plt.savefig(OUTPUT_FILE)
