@@ -20,6 +20,7 @@ from os.path import isfile, join
 RYU_LOG_DIR = 'build/utilization2loss/'
 CUBIC_DIR = RYU_LOG_DIR + 'cubic/'
 FCA_DIR = RYU_LOG_DIR + 'FCA/'
+BBR_DIR = RYU_LOG_DIR + 'bbr/'
 OUTPUT_FILE = RYU_LOG_DIR + 'utilization2loss.png'
 
 
@@ -44,12 +45,16 @@ def calculate_link_utilization(fle):
 def main():
     cubic_log_files = [join(CUBIC_DIR, f) for f in listdir(CUBIC_DIR) if isfile(join(CUBIC_DIR, f))]
     fca_log_files = [join(FCA_DIR, f) for f in listdir(FCA_DIR) if isfile(join(FCA_DIR, f))]
+    bbr_log_files = [join(BBR_DIR, f) for f in listdir(BBR_DIR) if isfile(join(BBR_DIR, f))]
     cubic_log_files.sort(key=lambda f: float(f.split('/')[-1]))
     fca_log_files.sort(key=lambda f: float(f.split('/')[-1]))
+    bbr_log_files.sort(key=lambda f: float(f.split('/')[-1]))
     cubic_avg_sending_rates = [calculate_link_utilization(f) for f in cubic_log_files]
     fca_avg_sending_rates = [calculate_link_utilization(f) for f in fca_log_files]
+    bbr_avg_sending_rates = [calculate_link_utilization(f) for f in bbr_log_files]
     cubic_avg_sending_rates = map(lambda s: s / 1000000, cubic_avg_sending_rates)
     fca_avg_sending_rates = map(lambda s: s / 1000000, fca_avg_sending_rates)
+    bbr_avg_sending_rates = map(lambda s: s / 1000000, bbr_avg_sending_rates)
     losses = [float(f) for f in listdir(CUBIC_DIR) if isfile(join(CUBIC_DIR, f))]
     losses.sort()
     plt.figure()
@@ -57,10 +62,12 @@ def main():
     plt.xscale('log')
     plt.xlabel('loss rate (log scale)')
     plt.ylabel('throughput (Mbps)')
-    plt.plot(losses, cubic_avg_sending_rates, 'r', label='cubic')
+    plt.plot(losses, cubic_avg_sending_rates, 'r', label='CuBic')
     plt.plot(losses, fca_avg_sending_rates, 'b', label='FCA')
+    plt.plot(losses, bbr_avg_sending_rates, 'g', label='BBR')
     plt.scatter(losses, fca_avg_sending_rates)
     plt.scatter(losses, cubic_avg_sending_rates)
+    plt.scatter(losses, bbr_avg_sending_rates)
     plt.legend()
     plt.savefig(OUTPUT_FILE)
     plt.show()
