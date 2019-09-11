@@ -1,6 +1,5 @@
 #!/usr/bin/python
 import argparse
-import matplotlib.pyplot as plt
 from os import listdir
 from os.path import isfile, join
 from file_process import *
@@ -8,6 +7,7 @@ import numpy
 import matplotlib.pyplot as plt
 
 log_file_dir = "/home/lam/Projects/sdccp/FCA/build/"
+INTERVALS = ['0.5', '1', '2']
 
 
 def calculate_rtts(f):
@@ -32,23 +32,14 @@ def plot_figure(f, out):
     intervals = map(lambda d: str(d[0]), data)
     rtt_avgs = map(lambda d: float(d[1]) - 110, data)
     rtt_stds = map(lambda d: float(d[2]), data)
+    plt.figure()
 
-    fig, ax1 = plt.subplots()
-
-    color = 'tab:red'
-    ax1.set_xlabel('interval (s)')
-    ax1.set_ylabel('average rtt (ms)', color=color)
-    ax1.bar(intervals, rtt_avgs, color=color)
-    ax1.tick_params(axis='y', labelcolor=color)
-
-    ax2 = ax1.twinx()
-
-    color = 'tab:blue'
-    ax2.set_ylabel('rtt std. (ms)', color=color)
-    ax2.plot(intervals, rtt_stds, color=color)
-    ax2.tick_params(axis='y', labelcolor=color)
-
-    fig.tight_layout()
+    plt.xlabel('interval (s)')
+    plt.ylabel('rtt (ms)')
+    plt.errorbar(intervals, rtt_avgs, rtt_stds, capsize=10,
+                 elinewidth=2,
+                 markeredgewidth=2)
+    plt.scatter(intervals, rtt_avgs)
 
     plt.savefig(out)
     plt.show()
@@ -58,7 +49,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--expr', '-e',
                     help="Experiment's name",
                     action="store",
-                    required=True,
                     dest="expr")
 
 
@@ -68,7 +58,10 @@ if __name__ == '__main__':
     figure_file = build_dir + 'rtt.png'
     if os.path.exists(out):
         os.remove(out)
-    intervals = args.expr.split(',')
+    if args.expr:
+        intervals = args.expr.split(',')
+    else:
+        intervals = INTERVALS
 
     if not os.path.exists(build_dir):
         os.mkdir(build_dir)
