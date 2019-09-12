@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 algs=(
-#"ccp"
-#"cubic"
+"ccp"
+"cubic"
 "bbr"
 )
 
@@ -11,9 +11,11 @@ losses=(
 #0.01
 #0.1
 #1
-2
+#2
 #5
 #10
+15
+20
 )
 
 duration=100
