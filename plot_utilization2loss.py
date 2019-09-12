@@ -58,7 +58,7 @@ def main():
     losses = [float(f) for f in listdir(CUBIC_DIR) if isfile(join(CUBIC_DIR, f))]
     losses.sort()
     plt.figure()
-    plt.ylim(0, 100)
+    plt.ylim(0, 50)
     plt.xscale('log')
     plt.xlabel('loss rate (%) (log scale)')
     plt.ylabel('throughput (Mbps)')
