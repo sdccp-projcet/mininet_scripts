@@ -37,10 +37,10 @@ AVAILABLE_CC = ['ccp', 'bbr', 'cubic', 'reno']
 
 QUEUE=100
 DELAY='50ms'		# r--h3 link
-BottleneckBW=100
+BottleneckBW=50
 BBR=False
 # Loss characteristic is only enabled when specify "--loss" option.
-LOSS = 0.01
+LOSS = 0.001
 
 # reno-bbr parameters:
 if BBR:
@@ -66,7 +66,7 @@ parser.add_argument('--cc', '-c',
                     dest="cc")
 parser.add_argument('--loss', '-l',
                     help="loss rate of bottleneck link",
-                    action="store_true",
+                    action="store",
                     dest="loss")
 
 # h1addr = '10.0.1.2/24'
@@ -245,6 +245,9 @@ if __name__ == '__main__':
     cc = args.cc if args.cc else 'bbr'
     test_option = args.test_option if args.test_option else None
     loss = args.loss if args.loss else None
+    global LOSS
+    if loss:
+        LOSS = float(loss)
     main(test_option=test_option, duration=int(duration), cc=cc, loss=loss)
 
 
