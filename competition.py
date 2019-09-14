@@ -212,9 +212,9 @@ def main(test_option=None, duration=10, cc='bbr', loss=None):
             time.sleep(duration + 10)
         elif test_option == COMPETE:
             h1.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (cc, duration))
-            time.sleep(duration/2)
-            h2.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (cc, duration/2))
-            time.sleep(duration/2 + 10)
+            time.sleep(5)
+            h2.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (cc, duration - 5))
+            time.sleep(duration + 5)
         elif test_option == HETEROGENEOUS:
             h1.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z ccp -t %d &' % duration)
             time.sleep(1)
