@@ -205,7 +205,7 @@ def main(test_option=None, duration=10, cc='bbr', loss=None):
         print("Enable auto test. h1 connect to h2 using %s ..." % cc)
         time.sleep(1)
         h3.cmd('iperf -s -p 12345 -i 1 &')
-        open(LOG_FILE, 'a+').write('%s\t4\n' % (str(time.time())))
+        open(LOG_FILE, 'a+').write('%s\t%d\n' % (str(time.time()), BottleneckBW))
 
         if test_option == SINGLE:
             h1.cmd('iperf -c 10.0.1.12 -p 12345 -i 1 -Z %s -t %d &' % (cc, duration))
