@@ -72,8 +72,10 @@ def plot_compare(f1, f2, out):
     # plt.plot(x2, y2)
 
     plt.xlim(0, 100)
-    plt.plot(x1, y1, 'b', label='cubic')
-    plt.plot(x2, y2, 'r', label='ccp')
+    plt.xlabel('time (s)')
+    plt.ylabel('queue length (packets)')
+    plt.plot(x1, y1, label='cubic')
+    plt.plot(x2, y2, label='ccp')
     plt.legend()
     # plt.plot(x1, y1, 'b', x2, y2, 'r')
 
